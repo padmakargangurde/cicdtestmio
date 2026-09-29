@@ -1,0 +1,17 @@
+<h2 class="pagehead">Reports</h2>
+<p class="subhead">Summary of approval progress on the active revision.</p>
+
+@if (activeRevision(); as revision) {
+  <app-approval-matrix [items]="revision.items" [categories]="revision.categories" [projectId]="projectId"></app-approval-matrix>
+
+  <div style="margin-top: var(--space-5); display:flex; gap:10px;">
+    <button class="btn" (click)="exportExcel()" [disabled]="exporting()">
+      <app-icon name="download" size="sm"></app-icon> {{ exporting() ? 'Exporting…' : 'Export Excel' }}
+    </button>
+    <button class="btn" (click)="openPdfReport()">
+      <app-icon name="file" size="sm"></app-icon> Export PDF
+    </button>
+  </div>
+} @else {
+  <div class="empty">No active revision yet — upload a workbook first.</div>
+}

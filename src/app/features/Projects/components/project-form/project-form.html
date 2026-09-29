@@ -1,0 +1,73 @@
+<h2 class="pagehead">New Project</h2>
+<p class="subhead">Create a project, then upload its material &amp; insulation matrix from its detail page.</p>
+
+<div class="card padded" style="max-width:640px;">
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="grid2">
+      <div class="field">
+        <label>Project Number</label>
+        <input type="text" formControlName="projectNumber" placeholder="e.g. PTC-PH2" />
+      </div>
+      <div class="field">
+        <label>Project Name</label>
+        <input type="text" formControlName="name" placeholder="e.g. Providence Town Center Phase 2" />
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="field">
+        <label>Client Name</label>
+        <input type="text" formControlName="clientName" />
+      </div>
+      <div class="field">
+        <label>Client Company</label>
+        <input type="text" formControlName="clientCompany" />
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="field">
+        <label>Location</label>
+        <input type="text" formControlName="location" />
+      </div>
+      <div class="field">
+        <label>Due Date</label>
+        <input type="date" formControlName="dueDate" />
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="field">
+        <label>Project Manager</label>
+        <select formControlName="projectManagerUserId">
+          <option [ngValue]="null">— Unassigned —</option>
+          @for (user of users(); track user.userId) {
+            <option [ngValue]="user.userId">{{ user.name }}</option>
+          }
+        </select>
+      </div>
+      <div class="field">
+        <label>BIM Coordinator</label>
+        <select formControlName="bimCoordinatorUserId">
+          <option [ngValue]="null">— Unassigned —</option>
+          @for (user of users(); track user.userId) {
+            <option [ngValue]="user.userId">{{ user.name }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Description</label>
+      <textarea formControlName="description" rows="3"></textarea>
+    </div>
+
+    @if (error()) {
+      <div class="warn-box">{{ error() }}</div>
+    }
+
+    <button class="btn primary" type="submit" [disabled]="saving()">
+      {{ saving() ? 'Creating…' : 'Create Project' }}
+    </button>
+  </form>
+</div>

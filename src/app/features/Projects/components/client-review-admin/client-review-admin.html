@@ -1,0 +1,47 @@
+<h2 class="pagehead">Client Review</h2>
+<p class="subhead">Share this link with your client to collect approval decisions on the active revision.</p>
+
+<div class="grid2">
+  <div class="card padded">
+    <div class="sectitle">Client Share Link</div>
+    @if (shareLink() && !shareLink()!.isRevoked) {
+      <div class="linkbox">
+        <code>{{ reviewUrl(shareLink()!.token) }}</code>
+        <button class="btn sm ghost" type="button" (click)="copyLink()" style="flex-shrink:0;">
+          <app-icon name="link" size="sm"></app-icon> {{ linkCopied() ? 'Copied!' : 'Copy Link' }}
+        </button>
+      </div>
+      <div class="sr-note">Created {{ formattedDateTime(shareLink()!.createdAt) }}</div>
+      <div style="display:flex;gap:10px;margin-top: var(--space-3);">
+        <a class="btn primary sm" [href]="reviewUrl(shareLink()!.token)" target="_blank" rel="noopener">Open Client Review</a>
+        <button class="btn danger sm" (click)="revokeShareLink()" [disabled]="shareLinkBusy()">Revoke Link</button>
+      </div>
+    } @else {
+      <p class="sr-note">No active share link for this project yet.</p>
+      <button class="btn primary sm" (click)="generateShareLink()" [disabled]="shareLinkBusy()">
+        {{ shareLinkBusy() ? 'Generating…' : 'Generate Share Link' }}
+      </button>
+    }
+  </div>
+
+  <div class="card padded">
+    <div class="sectitle">Final Approval Status</div>
+    @if (finalStatus(); as status) {
+      @if (status.isLocked) {
+        <span class="badge approved"><span class="dot"><app-icon name="check" size="sm"></app-icon></span>Locked</span>
+        <p class="sr-note">
+          Submitted by {{ status.submittedByName }}{{ status.submittedByCompany ? ' (' + status.submittedByCompany + ')' : '' }}
+          on {{ formattedDateTime(status.submittedAt) }}.
+        </p>
+        <button class="btn sm" style="margin-top: var(--space-3);" (click)="reopenSubmission()" [disabled]="reopenBusy()">
+          {{ reopenBusy() ? 'Reopening…' : 'Reopen for Review' }}
+        </button>
+      } @else {
+        <span class="badge pending"><span class="dot"><app-icon name="clock" size="sm"></app-icon></span>Open for review</span>
+        @if (status.submittedAt) {
+          <p class="sr-note">Reopened {{ formattedDateTime(status.reopenedAt) }} — client can submit again.</p>
+        }
+      }
+    }
+  </div>
+</div>

@@ -1,0 +1,63 @@
+<h2 class="pagehead">Team</h2>
+<p class="subhead">Internal staff you can assign as Project Manager or BIM Coordinator on a project.</p>
+
+<div class="grid2">
+  <div class="panel">
+    <table class="cattable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (user of users(); track user.userId) {
+          <tr>
+            <td>{{ user.name }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ roleLabel(user.role) }}</td>
+            <td>
+              <span class="badge" [class.approved]="user.isActive" [class.na]="!user.isActive">
+                {{ user.isActive ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="4" class="empty">No users yet.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card padded" style="max-height: fit-content;">
+    <div class="sectitle">Add Team Member</div>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="field">
+        <label>Name</label>
+        <input type="text" formControlName="name" />
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" formControlName="email" />
+      </div>
+      <div class="field">
+        <label>Role</label>
+        <select formControlName="role">
+          @for (role of roles; track role) {
+            <option [value]="role">{{ roleLabel(role) }}</option>
+          }
+        </select>
+      </div>
+
+      @if (error()) {
+        <div class="warn-box">{{ error() }}</div>
+      }
+
+      <button class="btn primary" type="submit" [disabled]="saving()">
+        {{ saving() ? 'Adding…' : 'Add User' }}
+      </button>
+    </form>
+  </div>
+</div>

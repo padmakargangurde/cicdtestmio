@@ -1,0 +1,12 @@
+<div id="app">
+  <sidebar></sidebar>
+  @if (sidebarState.isOpen()) {
+    <div class="backdrop" (click)="sidebarState.close()"></div>
+  }
+  <div class="main">
+    <navbar></navbar>
+    <div class="content">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,35 @@
+<div class="sidebar" [class.open]="sidebarState.isOpen()">
+  <div class="brand">
+    <div class="logomark">M</div>
+    <div>
+      <div class="mark">MEP Hub</div>
+      <div class="name">Approval Hub</div>
+    </div>
+  </div>
+  <nav (click)="sidebarState.close()">
+    <a class="navitem" routerLink="/dashboard" routerLinkActive="active">
+      <span class="ic"><app-icon name="dashboard"></app-icon></span>
+      Dashboard
+    </a>
+    <a class="navitem" [routerLink]="linkFor('matrix')" routerLinkActive="active">
+      <span class="ic"><app-icon name="matrix"></app-icon></span>
+      Approval Matrix
+    </a>
+    <a class="navitem" [routerLink]="linkFor('client-review')" routerLinkActive="active">
+      <span class="ic"><app-icon name="review"></app-icon></span>
+      Client Review
+    </a>
+    <a class="navitem" [routerLink]="linkFor('revisions')" routerLinkActive="active">
+      <span class="ic"><app-icon name="revisions"></app-icon></span>
+      Revision History
+    </a>
+    <a class="navitem" [routerLink]="linkFor('reports')" routerLinkActive="active">
+      <span class="ic"><app-icon name="reports"></app-icon></span>
+      Reports
+    </a>
+    <a class="navitem" routerLink="/users" routerLinkActive="active">
+      <span class="ic"><app-icon name="users"></app-icon></span>
+      Team
+    </a>
+  </nav>
+</div>

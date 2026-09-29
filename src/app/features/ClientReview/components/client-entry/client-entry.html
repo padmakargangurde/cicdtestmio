@@ -1,0 +1,70 @@
+@if (loading()) {
+  <div class="empty">Loading…</div>
+} @else if (notFound()) {
+  <div class="client-wrap">
+    <div class="empty">This link is invalid or has been revoked.</div>
+  </div>
+} @else if (review(); as r) {
+  <div class="client-wrap">
+    <div class="intro-hero">
+      <div class="k1">Material &amp; Insulation Approval Assistant</div>
+      <h2>{{ r.name }}</h2>
+      <p>
+        @if (r.finalStatus.isLocked) {
+          This approval has been finalized and submitted.
+        } @else {
+          You are reviewing the Material &amp; Insulation requirements for this project. There
+          {{ r.reviewStats.total === 1 ? 'is' : 'are' }} {{ r.reviewStats.total }}
+          item{{ r.reviewStats.total === 1 ? '' : 's' }} requiring review.
+        }
+      </p>
+
+      <div class="intro-stats">
+        <div>
+          <div class="n">{{ r.reviewStats.total }}</div>
+          <div class="l">Items</div>
+        </div>
+        <div>
+          <div class="n">{{ r.reviewStats.total - r.reviewStats.pending }}</div>
+          <div class="l">Reviewed</div>
+        </div>
+        <div>
+          <div class="n">
+            {{ r.reviewStats.total ? ((r.reviewStats.total - r.reviewStats.pending) / r.reviewStats.total * 100 | number: '1.0-0') : 0 }}%
+          </div>
+          <div class="l">Complete</div>
+        </div>
+      </div>
+
+      @if (r.finalStatus.isLocked) {
+        <span class="badge approved" style="font-size:13px;padding:8px 16px;">
+          Approval Complete — Submitted {{ formattedDateTime(r.finalStatus.submittedAt) }}
+        </span>
+      } @else {
+        <div class="field" style="max-width:280px;margin:0 auto 10px;text-align:left;">
+          <label>Your name</label>
+          <input type="text" placeholder="Jane Smith" [(ngModel)]="reviewerName" name="reviewerName" />
+        </div>
+        <div class="field" style="max-width:280px;margin:0 auto 14px;text-align:left;">
+          <label>Your email</label>
+          <input type="email" placeholder="jane@company.com" [(ngModel)]="reviewerEmail" name="reviewerEmail" />
+        </div>
+        @if (identifyError()) {
+          <div class="empty" style="margin-bottom:10px;">{{ identifyError() }}</div>
+        }
+        <button class="btn primary" (click)="startReview()" [disabled]="!canStartReview || identifying()">
+          {{ identifying() ? 'Starting…' : (r.reviewStats.total - r.reviewStats.pending > 0 ? 'Continue Review' : 'Start Review') }}
+        </button>
+      }
+
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:16px;">
+        <button class="btn sm ghost" (click)="exportExcel()" [disabled]="exportingExcel()">
+          <app-icon name="download" size="sm"></app-icon> {{ exportingExcel() ? 'Exporting…' : 'Export Excel' }}
+        </button>
+        <button class="btn sm ghost" (click)="openPdfReport()">
+          <app-icon name="file" size="sm"></app-icon> Export PDF
+        </button>
+      </div>
+    </div>
+  </div>
+}

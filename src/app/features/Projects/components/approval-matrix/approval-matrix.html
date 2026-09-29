@@ -1,0 +1,95 @@
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-top"><span class="kpi-icon tone-neutral"><app-icon name="matrix"></app-icon></span></div>
+    <div class="kpi-num">{{ total() }}</div>
+    <div class="kpi-label">Total Items</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-top"><span class="kpi-icon tone-success"><app-icon name="check"></app-icon></span></div>
+    <div class="kpi-num">{{ approvedTotal() }}</div>
+    <div class="kpi-label">Approved</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-top"><span class="kpi-icon tone-info"><app-icon name="clock"></app-icon></span></div>
+    <div class="kpi-num">{{ counts().pending }}</div>
+    <div class="kpi-label">Pending</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-top"><span class="kpi-icon tone-danger"><app-icon name="alert"></app-icon></span></div>
+    <div class="kpi-num">{{ issues() }}</div>
+    <div class="kpi-label">Issues</div>
+  </div>
+</div>
+
+<div [class]="projectInfo() ? 'grid2' : ''" style="margin-bottom: var(--space-5);">
+  <div class="card padded">
+    <div class="sectitle">Approval Progress</div>
+    <div style="display:flex;align-items:baseline;gap:10px;">
+      <div style="font-size:30px;font-weight:700;font-family:var(--font-mono);color:var(--color-ink);">{{ percent() }}%</div>
+      <div class="sr-note">{{ done() }} / {{ total() }} items reviewed</div>
+    </div>
+    <div class="pbar-track" style="margin-top:12px;"><div class="pbar-fill" [style.width.%]="percent()"></div></div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;">
+      <span class="badge approved"><span class="dot"><app-icon [name]="decisionIcon.Approved" size="sm"></app-icon></span>{{ counts().approved }} Approved</span>
+      <span class="badge commented"><span class="dot"><app-icon [name]="decisionIcon.Commented" size="sm"></app-icon></span>{{ counts().commented }} w/ Comments</span>
+      <span class="badge rejected"><span class="dot"><app-icon [name]="decisionIcon.Rejected" size="sm"></app-icon></span>{{ counts().rejected }} Rejected</span>
+      <span class="badge clarify"><span class="dot"><app-icon [name]="decisionIcon.Clarify" size="sm"></app-icon></span>{{ counts().clarify }} Clarify</span>
+      <span class="badge na"><span class="dot"><app-icon [name]="decisionIcon.NA" size="sm"></app-icon></span>{{ counts().na }} N/A</span>
+      <span class="badge pending"><span class="dot"><app-icon [name]="decisionIcon.Pending" size="sm"></app-icon></span>{{ counts().pending }} Pending</span>
+    </div>
+  </div>
+
+  @if (projectInfo(); as info) {
+    <div class="card padded">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="sectitle">Project Info</div>
+        <button class="btn sm ghost" title="Edit project details" (click)="editProjectInfo.emit()">
+          <app-icon name="settings" size="sm"></app-icon>
+        </button>
+      </div>
+      <div class="spec-line"><span class="k">Client</span><span class="v">{{ info.client }}</span></div>
+      <div class="spec-line"><span class="k">Location</span><span class="v">{{ info.location ?? '—' }}</span></div>
+      <div class="spec-line"><span class="k">PM / BIM Coordinator</span><span class="v">{{ info.pmName ?? '—' }} / {{ info.bimName ?? '—' }}</span></div>
+      <div class="spec-line"><span class="k">Revision</span><span class="v">{{ info.revisionLabel ?? '—' }}</span></div>
+
+      <div style="margin-top:12px;">
+        <label style="margin-bottom:6px;">Client Review Link</label>
+        @if (shareLink(); as link) {
+          <div class="linkbox" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <code style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ link.url }}</code>
+            <button class="btn sm ghost" type="button" (click)="copyLink()" style="flex-shrink:0;">
+              <app-icon name="link" size="sm"></app-icon> {{ linkCopied() ? 'Copied!' : 'Copy Link' }}
+            </button>
+          </div>
+        } @else {
+          <p class="sr-note" style="margin-top:0;">
+            No share link generated yet.
+            <a [routerLink]="['/projects', projectId(), 'client-review']">Generate one on the Client Review page →</a>
+          </p>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<div class="sectitle">Categories</div>
+<div class="card">
+  <table class="cattable">
+    <thead>
+      <tr><th>Category</th><th>Total</th><th>Approved</th><th>Pending</th><th>Issues</th></tr>
+    </thead>
+    <tbody>
+      @for (cat of categoryStats(); track cat.name) {
+        <tr class="row-clickable" (click)="categoryClick.emit(cat.name)">
+          <td>{{ cat.name }}</td>
+          <td class="num">{{ cat.total }}</td>
+          <td class="num">{{ cat.approved }}</td>
+          <td class="num">{{ cat.pending }}</td>
+          <td class="num">{{ cat.issues }}</td>
+        </tr>
+      } @empty {
+        <tr><td colspan="5" class="empty">No items in the active revision yet.</td></tr>
+      }
+    </tbody>
+  </table>
+</div>

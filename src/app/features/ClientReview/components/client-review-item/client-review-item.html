@@ -1,0 +1,105 @@
+@if (loading()) {
+  <div class="empty">Loading…</div>
+} @else if (!currentItem()) {
+  <div class="client-wrap">
+    <div class="empty">No items require review on this revision.</div>
+  </div>
+} @else {
+  @let item = currentItem()!;
+  @let catProg = categoryProgress()!;
+
+  <div class="client-wrap">
+    <div class="progresshead">
+      <div>
+        <div style="font-weight:700;">{{ review()!.name }}</div>
+        <div class="count">{{ reviewedCount() }} of {{ items().length }} reviewed</div>
+      </div>
+      <div class="pct">{{ percent() }}%</div>
+    </div>
+    <div class="cat-progress" style="margin-bottom:6px;font-size:12.5px;color:var(--color-text-secondary);">
+      {{ item.categoryName }} — item {{ catProg.position }} of {{ catProg.total }} in category ({{ catProg.done }} done)
+    </div>
+    <div class="ptrack"><div class="pfill" [style.width.%]="percent()"></div></div>
+
+    <div class="card reviewcard">
+      <div class="rc-head">
+        <div class="catlabel">{{ item.categoryName }}</div>
+        <div class="itemno">Item {{ index() + 1 }} of {{ items().length }}</div>
+      </div>
+      <div class="rc-body">
+        @if (item.section && showSection()) {
+          <div class="rc-section">{{ item.section }}</div>
+        }
+        <div style="margin-bottom:10px;font-size:13.5px;color:var(--color-text);">{{ question() }}</div>
+
+        @for (entry of fieldEntries(item); track entry[0]) {
+          <div class="spec-line">
+            <span class="k">{{ entry[0] }}</span>
+            <span class="v">{{ entry[1] ?? '—' }}</span>
+          </div>
+        }
+
+        @if (remarkField()) {
+          <div class="remark-box"><b>Remarks:</b> {{ remarkField() }}</div>
+        }
+        @if (item.specReference) {
+          <div class="reftag">Reference Specification: {{ item.specReference }}</div>
+        }
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:10px;">
+      <div class="decision-grid" style="padding-top:12px;">
+        @for (d of decisions; track d.key) {
+          <div
+            class="decisionbtn"
+            [class]="d.cls"
+            [class.sel]="currentDecision() === d.key"
+            (click)="selectDecision(d.key)"
+          >
+            <span class="sym"><app-icon [name]="d.icon" size="sm"></app-icon></span>{{ d.label }}
+          </div>
+        }
+      </div>
+      @if (item.comments.length > 0) {
+        <div class="commentwrap" style="padding-bottom:0;">
+          <label>Previous comments</label>
+        </div>
+        <div style="padding:0 18px 8px;">
+          @for (entry of item.comments; track entry.createdAt) {
+            <div class="comment-card">
+              <div class="comment-avatar">{{ commentInitials(entry.reviewedByName) }}</div>
+              <div class="comment-body">
+                <div class="comment-head">
+                  <span class="comment-name">{{ entry.reviewedByName ?? 'Client' }}{{ entry.role ? ' (' + entry.role + ')' : '' }}</span>
+                  <span class="comment-meta">{{ entry.email ? entry.email + ' · ' : '' }}{{ formattedDateTime(entry.createdAt) }}</span>
+                </div>
+                <div class="comment-text">{{ entry.comment }}</div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+      <div class="commentwrap">
+        <label>
+          Comment <span>{{ requiresComment() ? '(required)' : '(optional)' }}</span>
+        </label>
+        <textarea
+          [ngModel]="comment()"
+          (ngModelChange)="comment.set($event)"
+          placeholder="e.g. Please use Type L copper instead of Type K."
+        ></textarea>
+      </div>
+      @if (saveError()) {
+        <div class="warn-box" style="margin:0 18px 12px;">{{ saveError() }}</div>
+      }
+    </div>
+
+    <div class="navbtns">
+      <button class="btn" (click)="previous()" [disabled]="index() === 0">← Previous</button>
+      <button class="btn primary" (click)="next()" [disabled]="!canAdvance() || saving()">
+        {{ saving() ? 'Saving…' : 'Save & Next →' }}
+      </button>
+    </div>
+  </div>
+}

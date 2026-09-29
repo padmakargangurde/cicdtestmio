@@ -1,0 +1,29 @@
+<div class="card proj-card" [routerLink]="['/projects', project().projectId, targetSection()]" role="button" tabindex="0">
+  @if (showDelete()) {
+    <button class="delbtn" title="Delete project" aria-label="Delete project" (click)="onDelete($event)">
+      <app-icon name="x" size="sm"></app-icon>
+    </button>
+  }
+
+  <div class="pname">{{ project().name }}</div>
+  <div class="pmeta">{{ project().projectNumber }} · {{ project().clientName }}{{ revisionLabel() ? ' · ' + revisionLabel() : '' }}</div>
+
+  @if (!project().isPublished) {
+    <div class="sr-note" style="margin-top:14px;">Draft — no Excel uploaded yet</div>
+  } @else {
+    <div class="pbar-track"><div class="pbar-fill" [style.width.%]="percent()"></div></div>
+    <div class="pstat"><span>{{ percent() }}% complete</span><span>{{ total() }} items</span></div>
+    <div class="pstat" style="margin-top:8px;">
+      <span style="display:flex;align-items:center;gap:4px;color:var(--color-success);">
+        <app-icon name="check" size="sm"></app-icon>{{ approvedCount() }} approved
+      </span>
+      <span style="display:flex;align-items:center;gap:4px;color:var(--color-info);">
+        <app-icon name="clock" size="sm"></app-icon>{{ pendingCount() }} pending
+      </span>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px solid var(--color-border);">
+      <span class="sr-note" style="margin-top:0;">Updated {{ formattedDate(project().createdAt) }}</span>
+      <span class="btn sm primary" style="pointer-events:none;">Continue Review</span>
+    </div>
+  }
+</div>

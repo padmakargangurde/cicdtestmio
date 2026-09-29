@@ -1,0 +1,10 @@
+<h2 class="pagehead">{{ title }}</h2>
+<p class="subhead">Select a project to open its {{ title.toLowerCase() }}.</p>
+
+<div class="projects-grid">
+  @for (project of projects(); track project.projectId) {
+    <app-project-card [project]="project" [targetSection]="section"></app-project-card>
+  } @empty {
+    <div class="empty">No projects yet.</div>
+  }
+</div>

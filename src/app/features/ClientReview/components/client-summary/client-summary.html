@@ -1,0 +1,64 @@
+@if (loading()) {
+  <div class="empty">Loading…</div>
+} @else if (review(); as r) {
+  <div class="client-wrap">
+    <div class="intro-hero">
+      <div class="k1">{{ r.finalStatus.isLocked ? 'Submitted' : 'Review Complete' }}</div>
+      <h2>{{ r.finalStatus.isLocked ? 'Thank you' : 'Approval Complete' }}</h2>
+      <p>
+        @if (r.finalStatus.isLocked) {
+          Your responses were submitted on {{ formattedDateTime(r.finalStatus.submittedAt) }}.
+        } @else {
+          You've reviewed all Material &amp; Insulation items. Review your summary below, then submit your final approval.
+        }
+      </p>
+
+      <div class="intro-stats">
+        <div>
+          <div class="n" style="color:var(--color-success);">{{ r.reviewStats.approved + r.reviewStats.commented }}</div>
+          <div class="l">Approved</div>
+        </div>
+        <div>
+          <div class="n" style="color:var(--color-danger);">{{ r.reviewStats.rejected }}</div>
+          <div class="l">Rejected</div>
+        </div>
+        <div>
+          <div class="n" style="color:var(--color-warning);">{{ r.reviewStats.clarify }}</div>
+          <div class="l">Clarify</div>
+        </div>
+        <div>
+          <div class="n" style="color:var(--color-neutral);">{{ r.reviewStats.na }}</div>
+          <div class="l">N/A</div>
+        </div>
+      </div>
+    </div>
+
+    @if (r.finalStatus.isLocked) {
+      <div class="sr-note" style="text-align:center;">
+        This approval is locked. An admin can reopen it from the project dashboard if further review is needed.
+      </div>
+    } @else {
+      <div class="card padded" style="max-width:420px;margin:0 auto;">
+        <div class="field">
+          <label>Name</label>
+          <input type="text" [(ngModel)]="name" name="name" />
+        </div>
+        <div class="field">
+          <label>Company</label>
+          <input type="text" [(ngModel)]="company" name="company" />
+        </div>
+
+        @if (error()) {
+          <div class="warn-box">{{ error() }}</div>
+        }
+
+        <button class="btn primary" style="width:100%;" (click)="submit()" [disabled]="!name.trim() || submitting()">
+          {{ submitting() ? 'Submitting…' : 'Submit Final Approval' }}
+        </button>
+      </div>
+      <div style="text-align:center;margin-top:14px;">
+        <a class="btn ghost" [routerLink]="['/review', token, 'items']">← Review responses again</a>
+      </div>
+    }
+  </div>
+}

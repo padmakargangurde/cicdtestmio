@@ -1,0 +1,65 @@
+@if (notFound()) {
+  <div class="empty" style="padding:40px;">This link is invalid or has been revoked.</div>
+} @else if (review(); as r) {
+  <div class="no-print" style="margin-bottom:16px;display:flex;gap:10px;padding:20px;">
+    <button class="btn ghost" (click)="goBack()">← Back</button>
+    <button class="btn primary" (click)="print()">Print / Save as PDF</button>
+  </div>
+
+  <div style="max-width:900px;margin:0 auto;padding:0 20px 40px;">
+    <div style="text-align:center;padding:40px 0 20px;border-bottom:2px solid var(--color-ink);margin-bottom:24px;">
+      <div style="font-family:var(--font-mono);font-size:12px;letter-spacing:.1em;color:var(--color-text-tertiary);">MEP MATERIAL &amp; INSULATION APPROVAL</div>
+      <h2 style="margin:14px 0 4px;font-size:26px;">{{ r.name }}</h2>
+      <div style="color:var(--color-text-tertiary);">Project Number: {{ r.projectNumber }} · Client: {{ r.clientName }}</div>
+      <div style="color:var(--color-text-tertiary);">Revision: {{ r.revisionLabel }}</div>
+    </div>
+
+    <h3>Executive Summary</h3>
+    <table class="cattable" style="margin-bottom:24px;">
+      <tr><td>Total Items</td><td class="num">{{ items().length }}</td></tr>
+      <tr><td>Approved</td><td class="num">{{ counts().approved }}</td></tr>
+      <tr><td>Approved with Comments</td><td class="num">{{ counts().commented }}</td></tr>
+      <tr><td>Rejected</td><td class="num">{{ counts().rejected }}</td></tr>
+      <tr><td>Need Clarification</td><td class="num">{{ counts().clarify }}</td></tr>
+      <tr><td>Not Applicable</td><td class="num">{{ counts().na }}</td></tr>
+      <tr><td>Pending</td><td class="num">{{ counts().pending }}</td></tr>
+    </table>
+
+    <h3>Category Summary</h3>
+    <table class="cattable" style="margin-bottom:24px;">
+      <thead><tr><th>Category</th><th>Total</th><th>Approved</th><th>Pending</th><th>Issues</th></tr></thead>
+      <tbody>
+        @for (cat of categorySummary(); track cat.name) {
+          <tr><td>{{ cat.name }}</td><td class="num">{{ cat.total }}</td><td class="num">{{ cat.approved }}</td><td class="num">{{ cat.pending }}</td><td class="num">{{ cat.issues }}</td></tr>
+        }
+      </tbody>
+    </table>
+
+    <h3>Detailed Approval Log</h3>
+    <table class="cattable" style="margin-bottom:34px;font-size:12px;">
+      <thead><tr><th>#</th><th>Category</th><th>System</th><th>Requirement</th><th>Response</th><th>Comment</th><th>Reviewed By</th><th>Date</th></tr></thead>
+      <tbody>
+        @for (item of items(); track item.itemId; let idx = $index) {
+          <tr>
+            <td style="font-family:var(--font-mono);">{{ idx + 1 }}</td>
+            <td>{{ item.categoryName }}</td>
+            <td>{{ item.section ?? '—' }}</td>
+            <td style="font-size:11px;">{{ fieldSummary(item) }}</td>
+            <td>{{ item.decision }}</td>
+            <td>{{ item.comment ?? '—' }}</td>
+            <td>{{ item.reviewedByName ?? '—' }}</td>
+            <td>{{ item.respondedAt ? formattedDate(item.respondedAt) : '—' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <h3>Approval Sign-Off</h3>
+    <div style="margin-top:26px;line-height:2.6;">
+      Client Name: __________________________________&nbsp;&nbsp;&nbsp; Company: __________________________________<br>
+      Signature: __________________________________&nbsp;&nbsp;&nbsp; Date: __________________________________
+    </div>
+  </div>
+} @else {
+  <div class="empty" style="padding:40px;">Loading report…</div>
+}

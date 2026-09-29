@@ -1,0 +1,41 @@
+<h2 class="pagehead">Projects</h2>
+<p class="subhead">Material &amp; insulation approval matrices across all active projects.</p>
+
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-top">
+      <div class="kpi-icon tone-neutral"><app-icon name="dashboard"></app-icon></div>
+    </div>
+    <div class="kpi-num">{{ projects().length }}</div>
+    <div class="kpi-label">Total Projects</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-top">
+      <div class="kpi-icon tone-success"><app-icon name="check"></app-icon></div>
+    </div>
+    <div class="kpi-num">{{ published() }}</div>
+    <div class="kpi-label">Published</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-top">
+      <div class="kpi-icon tone-warning"><app-icon name="clock"></app-icon></div>
+    </div>
+    <div class="kpi-num">{{ drafts() }}</div>
+    <div class="kpi-label">Draft — No Matrix</div>
+  </div>
+</div>
+
+@if (loading()) {
+  <div class="empty">Loading projects…</div>
+} @else {
+  <div class="projects-grid">
+    @for (project of projects(); track project.projectId) {
+      <app-project-card [project]="project" [showDelete]="true" (deleteRequested)="deleteProject($event)"></app-project-card>
+    }
+
+    <a class="new-proj-card" routerLink="/projects/new">
+      <div class="plus"><app-icon name="plus" size="lg"></app-icon></div>
+      <div>New Project</div>
+    </a>
+  </div>
+}

@@ -1,0 +1,237 @@
+@if (project(); as p) {
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+    <div>
+      <h2 class="pagehead">{{ p.name }}</h2>
+      <p class="subhead">{{ p.projectNumber }} · {{ p.clientName }}</p>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn sm" (click)="exportExcel()" [disabled]="exportingExcel()">
+        <app-icon name="download" size="sm"></app-icon> {{ exportingExcel() ? 'Exporting…' : 'Excel' }}
+      </button>
+      <button class="btn sm" (click)="openPdfReport()">
+        <app-icon name="file" size="sm"></app-icon> PDF Report
+      </button>
+      <label class="btn sm primary" for="matrixFile" style="cursor:pointer;">
+        {{ uploading() ? 'Uploading…' : 'Upload New Revision' }}
+      </label>
+      <input id="matrixFile" type="file" accept=".xlsx" style="display:none" (change)="onFileSelected($event)" [disabled]="uploading()" />
+    </div>
+  </div>
+
+  @if (uploadResultMessage()) {
+    <div class="sr-note" style="margin-top: var(--space-2); color: var(--color-success);">{{ uploadResultMessage() }}</div>
+  }
+  @if (uploadError()) {
+    <div class="warn-box" style="margin-top: var(--space-2);">{{ uploadError() }}</div>
+  }
+
+  <div class="tabs">
+    <button [class.active]="tab() === 'overview'" (click)="selectTab('overview')">Overview</button>
+    <button [class.active]="tab() === 'items'" (click)="selectTab('items')">Items</button>
+    <button [class.active]="tab() === 'comments'" (click)="selectTab('comments')">Client Comments</button>
+    <button [class.active]="tab() === 'audit'" (click)="selectTab('audit')">Audit Log</button>
+  </div>
+
+  @if (tab() === 'overview') {
+    @if (activeRevision(); as rev) {
+      <app-approval-matrix
+        [items]="rev.items"
+        [categories]="rev.categories"
+        [projectId]="projectId"
+        [projectInfo]="projectInfo()"
+        [shareLink]="shareLinkUrl()"
+        (categoryClick)="jumpToCategory($event)"
+        (editProjectInfo)="toggleEditDetails()"
+      ></app-approval-matrix>
+    } @else {
+      <div class="card padded" style="text-align:center;padding:var(--space-8);margin-bottom:var(--space-5);">
+        <app-icon name="upload" size="lg"></app-icon>
+        <div class="sectitle" style="margin-top:12px;">No Excel data uploaded yet</div>
+        <p class="sr-note">Upload the approval matrix workbook to start reviewing items for this project.</p>
+        <label class="btn primary" for="matrixFile" style="cursor:pointer;display:inline-flex;margin-top:10px;">
+          {{ uploading() ? 'Uploading…' : 'Upload Excel File' }}
+        </label>
+      </div>
+    }
+
+    @if (editingDetails()) {
+      <div class="card padded" style="margin-bottom: var(--space-5);">
+        <div class="sectitle">Edit Project Details</div>
+        <form [formGroup]="form" (ngSubmit)="saveOverview()">
+          <div class="field">
+            <label>Project Name</label>
+            <input type="text" formControlName="name" />
+          </div>
+          <div class="field">
+            <label>Client Name</label>
+            <input type="text" formControlName="clientName" />
+          </div>
+          <div class="field">
+            <label>Client Company</label>
+            <input type="text" formControlName="clientCompany" />
+          </div>
+          <div class="field">
+            <label>Location</label>
+            <input type="text" formControlName="location" />
+          </div>
+          <div class="field">
+            <label>Due Date</label>
+            <input type="date" formControlName="dueDate" />
+          </div>
+          <div class="field">
+            <label>Project Manager</label>
+            <select formControlName="projectManagerUserId">
+              <option [ngValue]="null">— Unassigned —</option>
+              @for (user of users(); track user.userId) {
+                <option [ngValue]="user.userId">{{ user.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>BIM Coordinator</label>
+            <select formControlName="bimCoordinatorUserId">
+              <option [ngValue]="null">— Unassigned —</option>
+              @for (user of users(); track user.userId) {
+                <option [ngValue]="user.userId">{{ user.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>Description</label>
+            <textarea formControlName="description" rows="3"></textarea>
+          </div>
+
+          @if (saveError()) {
+            <div class="warn-box">{{ saveError() }}</div>
+          }
+
+          <div style="display:flex;gap:10px;">
+            <button class="btn primary" type="submit" [disabled]="saving()">
+              {{ saving() ? 'Saving…' : 'Save Changes' }}
+            </button>
+            <button class="btn ghost" type="button" (click)="toggleEditDetails()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <div class="sectitle" style="margin-top: var(--space-6);">Danger Zone</div>
+    <div class="card padded" style="border-color: var(--color-danger-border);">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;">
+        <div>
+          <div style="font-weight:600;">Delete this project</div>
+          <div class="sr-note">Removes the project, every revision, all client responses and comments. This cannot be undone.</div>
+        </div>
+        <button class="btn danger sm" (click)="deleteProject()" [disabled]="deleting()">
+          {{ deleting() ? 'Deleting…' : 'Delete Project' }}
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (tab() === 'items') {
+    @if (activeRevision(); as revision) {
+      <div class="filterbar">
+        <div class="searchbox">
+          <span class="sicon"><app-icon name="search" size="sm"></app-icon></span>
+          <input type="text" placeholder="Search material, size, spec…" [value]="itemSearch()" (input)="onItemSearch($event)" />
+        </div>
+        @for (f of decisionFilters; track f.value) {
+          <div class="chip" [class.active]="decisionFilter() === f.value" (click)="decisionFilter.set(f.value)">{{ f.label }}</div>
+        }
+        @if (categoryFilter(); as filterName) {
+          <div class="chip active">Category: {{ filterName }} <span (click)="clearCategoryFilter()" style="cursor:pointer;margin-left:6px;">✕</span></div>
+        }
+      </div>
+      <div class="card">
+        @for (item of filteredItems(); track item.itemId) {
+          <div class="itemrow">
+            <div class="iid">#{{ pad(item.itemNo) }}</div>
+            <div>
+              <div class="icat">{{ item.categoryName }}{{ item.section ? ' · ' + item.section : '' }}</div>
+              <div class="ifields">
+                @for (entry of fieldEntries(item.fields); track entry[0]) {
+                  <div class="rowline"><span class="k">{{ entry[0] }}:</span> {{ entry[1] ?? '—' }}</div>
+                }
+              </div>
+              @if (item.comments.length > 0) {
+                <div class="comment-section-label">Comment Review</div>
+                @for (entry of item.comments; track entry.createdAt) {
+                  <div class="comment-card">
+                    <div class="comment-avatar">{{ commentInitials(entry.reviewedByName) }}</div>
+                    <div class="comment-body">
+                      <div class="comment-head">
+                        <span class="comment-name">{{ entry.reviewedByName ?? 'Client' }}{{ entry.role ? ' (' + entry.role + ')' : '' }}</span>
+                        <span class="comment-meta">{{ entry.email ? entry.email + ' · ' : '' }}{{ formattedDateTime(entry.createdAt) }}</span>
+                      </div>
+                      <div class="comment-text">{{ entry.comment }}</div>
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+            <div style="text-align:right;">
+              <span class="badge" [class]="badgeClass(item.decision)">
+                <span class="dot"><app-icon [name]="decisionIcon(item.decision)" size="sm"></app-icon></span>{{ decisionLabel(item.decision) }}
+              </span>
+            </div>
+          </div>
+        } @empty {
+          <div class="empty">No items match this filter.</div>
+        }
+      </div>
+    } @else {
+      <div class="empty">No active revision yet — upload a workbook first.</div>
+    }
+  }
+
+  @if (tab() === 'comments') {
+    <div class="card">
+      @for (item of commentedItems(); track item.itemId) {
+        <div class="itemrow" style="grid-template-columns:1fr;">
+          <div>
+            <div class="icat">
+              {{ item.categoryName }}{{ item.section ? ' · ' + item.section : '' }}
+              <span class="badge" [class]="badgeClass(item.decision)" style="margin-left:8px;">
+                <span class="dot"><app-icon [name]="decisionIcon(item.decision)" size="sm"></app-icon></span>{{ decisionLabel(item.decision) }}
+              </span>
+            </div>
+            <div class="ifields">
+              @for (entry of previewFields(item.fields); track entry[0]) {
+                <span class="k">{{ entry[0] }}:</span> {{ entry[1] ?? '—' }} &nbsp;&nbsp;
+              }
+            </div>
+            <div class="comment-section-label">Comment Review</div>
+            @for (entry of item.comments; track entry.createdAt) {
+              <div class="comment-card">
+                <div class="comment-avatar">{{ commentInitials(entry.reviewedByName) }}</div>
+                <div class="comment-body">
+                  <div class="comment-head">
+                    <span class="comment-name">{{ entry.reviewedByName ?? 'Client' }}{{ entry.role ? ' (' + entry.role + ')' : '' }}</span>
+                    <span class="comment-meta">{{ entry.email ? entry.email + ' · ' : '' }}{{ formattedDateTime(entry.createdAt) }}</span>
+                  </div>
+                  <div class="comment-text">{{ entry.comment }}</div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      } @empty {
+        <div class="empty">No client comments recorded yet on this revision.</div>
+      }
+    </div>
+  }
+
+  @if (tab() === 'audit') {
+    <div class="card padded">
+      @for (entry of auditEntries(); track entry.timestamp + entry.action) {
+        <div class="audit-row">
+          <span>{{ entry.action }}{{ entry.detail ? ' — ' + entry.detail : '' }}</span>
+          <span class="t">{{ entry.actorDisplayName }} · {{ formattedDateTime(entry.timestamp) }}</span>
+        </div>
+      } @empty {
+        <div class="empty">No activity yet.</div>
+      }
+    </div>
+  }
+}

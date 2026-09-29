@@ -1,0 +1,21 @@
+<h2 class="pagehead">Revision History</h2>
+<p class="subhead">Every uploaded revision is retained. Switching the active revision does not delete approval history.</p>
+
+<div class="card">
+  @for (revision of revisions(); track revision.revisionId) {
+    <div class="itemrow" style="grid-template-columns:90px 1fr 100px;">
+      <div class="iid">R{{ revision.revisionNumber.toString().padStart(2, '0') }}</div>
+      <div>
+        <div style="font-weight:600;">{{ revision.label }}</div>
+        <div class="sr-note">{{ revision.uploadedByName ?? 'System' }} · uploaded {{ formattedDateTime(revision.uploadedAt) }} · {{ revision.itemCount }} items</div>
+      </div>
+      <div style="text-align:right;">
+        @if (revision.isActive) {
+          <span class="badge approved">Active</span>
+        }
+      </div>
+    </div>
+  } @empty {
+    <div class="empty">No revisions uploaded yet.</div>
+  }
+</div>
