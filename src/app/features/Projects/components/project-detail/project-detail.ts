@@ -176,10 +176,13 @@ export class ProjectDetail {
     this.revisionService.upload(this.projectId, file).subscribe({
       next: (result) => {
         this.uploading.set(false);
-        this.uploadResultMessage.set(
+        let message =
           `${result.label}: ${result.addedCount} added, ${result.modifiedCount} modified, ` +
-            `${result.removedCount} removed, ${result.unchangedCount} carried forward.`,
-        );
+          `${result.removedCount} removed, ${result.unchangedCount} carried forward.`;
+        if (result.warnings.length > 0) {
+          message += ' ⚠ ' + result.warnings.join(' ');
+        }
+        this.uploadResultMessage.set(message);
         this.loadActiveRevision();
         this.loadAuditLog();
         this.loadProject();
