@@ -1,10 +1,9 @@
-name: mio
-
+name: CI/CD
 
 on:
   push:
     branches:
-      - Dev
+      - main
 
 env:
   IMAGE_NAME: mio
@@ -19,13 +18,12 @@ jobs:
       - name: Checkout Source
         uses: actions/checkout@v4
 
-       name: Set up Java
-  uses: actions/setup-java@v5
-  with:
-    distribution: temurin
-    java-version: '21'
-    cache: maven
-    cache-dependency-path: myapp/pom.xml
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
 
       - name: Build Project
         run: mvn clean package -DskipTests
@@ -37,10 +35,10 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker Image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/spring-boot-app:latest .
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/mio:lates .
 
       - name: Push Image
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/spring-boot-app:latest
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/mio:lates
 
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.2.0
@@ -50,16 +48,16 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
 
-            docker pull ${{ secrets.DOCKER_USERNAME }}/spring-boot-app:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/mio:lates
 
-            docker stop spring-boot-app || true
+            docker stop mio || true
 
-            docker rm spring-boot-app || true
+            docker rm mio || true
 
             docker run -d \
-              --name spring-boot-app \
+              --name mio \
               --restart unless-stopped \
               -p 8080:8080 \
-              ${{ secrets.DOCKER_USERNAME }}/spring-boot-app:latest
+              ${{ secrets.DOCKER_USERNAME }}/mio:lates
 
             docker image prune -f
